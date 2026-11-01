@@ -1,0 +1,60 @@
+
+name: Prepare Mashesha project
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download repository
+        uses: actions/checkout@v4
+
+      - name: Extract Mashesha ZIP
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile
+          import shutil
+          import tempfile
+
+          archives = list(Path(".").glob("*.zip"))
+          if len(archives) != 1:
+              raise SystemExit("Expected exactly one ZIP file in repository")
+
+          archive = archives[0]
+          temp = Path(tempfile.mkdtemp())
+
+          with zipfile.ZipFile(archive) as z:
+              for item in z.infolist():
+                  target = (temp / item.filename).resolve()
+                  if not target.is_relative_to(temp.resolve()):
+                      raise SystemExit("Unsafe ZIP path")
+              z.extractall(temp)
+
+          folders = list(temp.iterdir())
+          source = folders[0] if len(folders) == 1 and folders[0].is_dir() else temp
+
+          for item in source.iterdir():
+              target = Path(item.name)
+              if item.is_dir():
+                  shutil.copytree(item, target, dirs_exist_ok=True)
+              else:
+                  shutil.copy2(item, target)
+
+          archive.unlink()
+          if not Path("package.json").exists():
+              raise SystemExit("package.json was not found after extraction")
+          PY
+
+      - name: Save extracted project
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Extract Mashesha project files" || echo "No changes"
+          git push
