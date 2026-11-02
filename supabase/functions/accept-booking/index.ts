@@ -1,0 +1,3 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
+serve(async req=>{try{const token=req.headers.get('Authorization')||'';const c=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_ANON_KEY')!,{global:{headers:{Authorization:token}}});const {data:{user}}=await c.auth.getUser();if(!user)return new Response('Unauthorized',{status:401});const {offer_id}=await req.json();const {data,error}=await c.rpc('accept_booking_offer',{p_offer_id:offer_id});if(error)throw error;return Response.json({accepted:data});}catch(e){return Response.json({error:String(e)},{status:400});}});

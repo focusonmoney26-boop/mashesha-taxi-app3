@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "Mashesha",
+    "slug": "mashesha-qwaqwa",
+    "scheme": "mashesha",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "android": {
+      "package": "za.co.mashesha.app",
+      "versionCode": 1
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
